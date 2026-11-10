@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Game Studio & Arcade Hub</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter & Press Start 2P for Arcade styling -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            arcade: ['"Press Start 2P"', 'monospace'],
+          },
+          colors: {
+            arcade: {
+              bg: '#0B0F19',
+              card: '#151C2C',
+              border: '#2A364F',
+              neonCyan: '#00F0FF',
+              neonPink: '#FF007A',
+              neonPurple: '#7000FF',
+              neonYellow: '#FFE600',
+              neonGreen: '#00FF66',
+            }
+          },
+          boxShadow: {
+            'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.4)',
+            'neon-pink': '0 0 15px rgba(255, 0, 122, 0.4)',
+            'neon-purple': '0 0 20px rgba(112, 0, 255, 0.4)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0B0F19;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2A364F;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00F0FF;
+    }
+
+    /* Glow Text Utility */
+    .glow-cyan {
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
+    }
+    .glow-pink {
+      text-shadow: 0 0 10px rgba(255, 0, 122, 0.7);
+    }
+    .glow-purple {
+      text-shadow: 0 0 12px rgba(112, 0, 255, 0.8);
+    }
+
+    /* Glassmorphic panel */
+    .glass-panel {
+      background: rgba(21, 28, 44, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Animated gradient border */
+    .gradient-border {
+      position: relative;
+      background: linear-gradient(135deg, #00F0FF, #7000FF, #FF007A);
+      padding: 1px;
+      border-radius: 1rem;
+    }
+  </style>
+</head>
+
+<body class="bg-arcade-bg text-gray-100 font-sans min-h-screen flex flex-col selection:bg-arcade-neonPink selection:text-white relative overflow-x-hidden">
+
+  <!-- Interactive Ambient Neon Canvas Background -->
+  <canvas id="ambient-bg-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-arcade-bg/90 backdrop-blur-md border-b border-arcade-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('arcade')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-arcade-neonPurple via-arcade-neonPink to-arcade-neonCyan flex items-center justify-center shadow-neon-purple">
+          <i class="fa-solid font-arcade text-white text-lg">⚡</i>
+        </div>
+        <div>
+          <span class="font-arcade text-sm sm:text-base tracking-wider bg-gradient-to-r from-arcade-neonCyan via-white to-arcade-neonPink bg-clip-text text-transparent">NEXUS AI</span>
+          <span class="hidden sm:inline-block text-xs text-arcade-neonCyan font-bold ml-2 px-2 py-0.5 rounded bg-arcade-neonCyan/10 border border-arcade-neonCyan/30">GAME STUDIO</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center space-x-1 bg-arcade-card/80 p-1.5 rounded-xl border border-arcade-border">
+        <button id="nav-arcade" onclick="switchTab('arcade')" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center space-x-2 text-white bg-arcade-neonPurple/30 border border-arcade-neonPurple/50">
+          <i class="fa-solid fa-gamepad text-arcade-neonCyan"></i>
+          <span>아케이드 라운지</span>
+        </button>
+        <button id="nav-create" onclick="switchTab('create')" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white hover:bg-arcade-border/50 transition-all duration-200 flex items-center space-x-2">
+          <i class="fa-solid fa-wand-magic-sparkles text-arcade-neonPink"></i>
+          <span>AI 게임 제작기</span>
+        </button>
+        <button id="nav-leaderboard" onclick="switchTab('leaderboard')" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white hover:bg-arcade-border/50 transition-all duration-200 flex items-center space-x-2">
+          <i class="fa-solid fa-trophy text-arcade-neonYellow"></i>
+          <span>명예의 전당</span>
+        </button>
+      </nav>
+
+      <!-- User Profile & Status -->
+      <div class="flex items-center space-x-3">
+        <div class="hidden sm:flex items-center space-x-2 bg-arcade-card px-3 py-1.5 rounded-lg border border-arcade-border">
+          <i class="fa-solid fa-coins text-arcade-neonYellow text-sm"></i>
+          <span id="user-tokens" class="text-xs font-bold text-gray-200">1,250 CR</span>
+        </div>
+        <button onclick="openProfileModal()" class="flex items-center space-x-2 bg-arcade-card hover:bg-arcade-border p-1.5 pr-3 rounded-xl border border-arcade-border transition-all">
+          <img id="user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=GamerZero" class="w-8 h-8 rounded-lg bg-arcade-neonPurple/20 border border-arcade-neonPurple/40" alt="Avatar">
+          <span id="user-name" class="text-xs font-semibold text-gray-200 hidden sm:inline">종합병원</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobile Nav Bar -->
+    <div class="md:hidden flex border-t border-arcade-border bg-arcade-card px-2 py-1 justify-around">
+      <button onclick="switchTab('arcade')" class="text-xs py-2 px-3 flex flex-col items-center space-y-1 text-arcade-neonCyan">
+        <i class="fa-solid fa-gamepad text-base"></i>
+        <span>아케이드</span>
+      </button>
+      <button onclick="switchTab('create')" class="text-xs py-2 px-3 flex flex-col items-center space-y-1 text-gray-400 hover:text-white">
+        <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+        <span>AI 제작</span>
+      </button>
+      <button onclick="switchTab('leaderboard')" class="text-xs py-2 px-3 flex flex-col items-center space-y-1 text-gray-400 hover:text-white">
+        <i class="fa-solid fa-trophy text-base"></i>
+        <span>랭킹</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ==================== TAB 1: ARCADE LOUNGE ==================== -->
+    <section id="tab-arcade" class="tab-content block space-y-8">
+      
+      <!-- Hero Banner -->
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-arcade-card via-arcade-card to-arcade-neonPurple/20 border border-arcade-border p-6 sm:p-8">
+        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-arcade-neonPurple/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute right-1/3 -top-10 w-48 h-48 bg-arcade-neonCyan/15 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="relative z-10 max-w-2xl space-y-4">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-arcade-neonPink/10 border border-arcade-neonPink/30 text-arcade-neonPink text-xs font-bold">
+            <i class="fa-solid fa-fire text-xs animate-pulse"></i>
+            <span>말 한마디로 만드는 실시간 AI 멀티 아케이드</span>
+          </div>
+          <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+            상상이 게임이 되는 곳,<br>
+            <span class="bg-gradient-to-r from-arcade-neonCyan via-arcade-neonPink to-arcade-neonYellow bg-clip-text text-transparent glow-cyan">
+              플레이하고 기록을 경신하세요!
+            </span>
+          </h1>
+          <p class="text-gray-400 text-sm sm:text-base leading-relaxed">
+            프롬프트 입력 한 번으로 나만의 웹 게임을 즉시 생성하고, 친구들과 공유하여 최고 점수 배틀을 펼치세요.
+          </p>
+
+          <div class="pt-2 flex flex-wrap gap-3">
+            <button onclick="switchTab('create')" class="px-5 py-3 rounded-xl bg-gradient-to-r from-arcade-neonPink to-arcade-neonPurple hover:from-arcade-neonPink/90 hover:to-arcade-neonPurple/90 text-white font-bold text-sm shadow-neon-pink flex items-center space-x-2 transition-all transform hover:-translate-y-0.5">
+              <i class="fa-solid fa-plus-circle text-base"></i>
+              <span>내 게임 무료 생성하기</span>
+            </button>
+            <button onclick="scrollToFeatured()" class="px-5 py-3 rounded-xl bg-arcade-card hover:bg-arcade-border text-gray-200 font-semibold text-sm border border-arcade-border flex items-center space-x-2 transition-all">
+              <i class="fa-solid fa-play text-arcade-neonGreen"></i>
+              <span>추천 게임 둘러보기</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arcade Search & Category Filters -->
+      <div id="featured-section" class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        
+        <!-- Search Input -->
+        <div class="relative flex-1">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <input type="text" id="game-search" oninput="filterGames()" placeholder="게임 제목, 태그 또는 크리에이터 검색..." class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-arcade-card border border-arcade-border focus:border-arcade-neonCyan focus:outline-none text-sm text-white placeholder-gray-500 transition-colors">
+        </div>
+
+        <!-- Filter Tags -->
+        <div class="flex items-center space-x-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+          <button onclick="setCategoryFilter('all')" class="cat-btn active px-3.5 py-2 rounded-xl text-xs font-semibold bg-arcade-neonCyan/20 text-arcade-neonCyan border border-arcade-neonCyan/40 whitespace-nowrap">
+            ✨ 전체 보기
+          </button>
+          <button onclick="setCategoryFilter('popular')" class="cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-arcade-card text-gray-400 hover:text-white border border-arcade-border whitespace-nowrap">
+            🔥 인기 베스트
+          </button>
+          <button onclick="setCategoryFilter('action')" class="cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-arcade-card text-gray-400 hover:text-white border border-arcade-border whitespace-nowrap">
+            🚀 액션/슈팅
+          </button>
+          <button onclick="setCategoryFilter('arcade')" class="cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-arcade-card text-gray-400 hover:text-white border border-arcade-border whitespace-nowrap">
+            🕹️ 클래식 아케이드
+          </button>
+          <button onclick="setCategoryFilter('puzzle')" class="cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-arcade-card text-gray-400 hover:text-white border border-arcade-border whitespace-nowrap">
+            🧩 퍼즐/지능
+          </button>
+        </div>
+      </div>
+
+      <!-- Games Grid -->
+      <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- Dynamic Game Cards Inserted Here via JS -->
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 2: AI GAME CREATOR ==================== -->
+    <section id="tab-create" class="tab-content hidden space-y-6">
+      
+      <!-- AI Creator Header -->
+      <div class="text-center max-w-2xl mx-auto space-y-2">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-arcade-neonPurple/20 border border-arcade-neonPurple/40 text-arcade-neonCyan text-xs font-bold">
+          <i class="fa-solid fa-microchip"></i>
+          <span>Gemini AI 엔진 구동</span>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-white">프롬프트 기반 AI 게임 생성기</h2>
+        <p class="text-gray-400 text-sm">만들고 싶은 게임의 아이디어를 자유롭게 설명해주세요. AI가 상상을 바로 동작하는 캔버스 게임 코드로 변환해줍니다.</p>
+      </div>
+
+      <!-- Main Creation Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Prompt Input & Controls (Left 5 cols) -->
+        <div class="lg:col-span-5 space-y-5 glass-panel p-5 sm:p-6 rounded-2xl">
+          
+          <!-- Quick Template Chips -->
+          <div>
+            <label class="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">추천 아이디어 템플릿</label>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="applyPreset('우주 운석 회피 슈팅 게임')" class="px-2.5 py-1.5 rounded-lg bg-arcade-card hover:bg-arcade-border text-xs text-arcade-neonCyan border border-arcade-border transition-all">
+                🌌 우주 회피 슈팅
+              </button>
+              <button onclick="applyPreset('네온 스타일의 장애물 점프 러너 게임')" class="px-2.5 py-1.5 rounded-lg bg-arcade-card hover:bg-arcade-border text-xs text-arcade-neonPink border border-arcade-border transition-all">
+                🏃 네온 점프 러너
+              </button>
+              <button onclick="applyPreset('사이키델릭 스타일 벽돌 깨기 게임')" class="px-2.5 py-1.5 rounded-lg bg-arcade-card hover:bg-arcade-border text-xs text-arcade-neonYellow border border-arcade-border transition-all">
+                🧱 레트로 벽돌깨기
+              </button>
+              <button onclick="applyPreset('먹이를 먹으면 자라는 사이버 뱀 게임')" class="px-2.5 py-1.5 rounded-lg bg-arcade-card hover:bg-arcade-border text-xs text-arcade-neonGreen border border-arcade-border transition-all">
+                🐍 사이버 스네이크
+              </button>
+            </div>
+          </div>
+
+          <!-- Prompt Text Area -->
+          <div>
+            <label for="prompt-input" class="block text-xs font-bold text-gray-300 mb-2">게임 프롬프트 상세 설명</label>
+            <textarea id="prompt-input" rows="4" placeholder="예: 화면 아래에서 캐릭터를 좌우로 움직여 하늘에서 떨어지는 과일을 먹고, 장애물을 피하며 점수를 얻는 게임을 만들어줘. 과일을 먹으면 신나는 연출 효과가 나와야 해!" class="w-full p-3.5 rounded-xl bg-arcade-bg border border-arcade-border focus:border-arcade-neonPink focus:outline-none text-sm text-white placeholder-gray-500 leading-relaxed transition-all resize-none"></textarea>
+          </div>
+
+          <!-- Style & Difficulty Options -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1">그래픽 & 배경 테마</label>
+              <select id="theme-select" class="w-full p-2.5 rounded-xl bg-arcade-bg border border-arcade-border text-xs text-white focus:outline-none focus:border-arcade-neonCyan">
+                <option value="cyber-grid">네온 사이버 그리드 (Cyber Grid)</option>
+                <option value="synth-sunset">신스웨이브 석양 (Synthwave Sunset)</option>
+                <option value="deep-space">딥 스페이스 네뷸라 (Space Stars)</option>
+                <option value="pixel-retro">8비트 레트로 픽셀 (Pixel Retro)</option>
+                <option value="minimal-dark">미니멀 다크 모드 (Minimal Dark)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1">게임 장르/유형</label>
+              <select id="genre-select" class="w-full p-2.5 rounded-xl bg-arcade-bg border border-arcade-border text-xs text-white focus:outline-none focus:border-arcade-neonCyan">
+                <option value="arcade">아케이드 / 슈팅</option>
+                <option value="runner">무한 러너 / 회피</option>
+                <option value="puzzle">퍼즐 / 물리</option>
+                <option value="classic">클래식 재해석</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- API Key Option (Optional Override) -->
+          <div class="pt-1">
+            <details class="text-xs text-gray-400">
+              <summary class="cursor-pointer hover:text-arcade-neonCyan">⚙️ 고급 설정 (Gemini API 키 커스텀 사용)</summary>
+              <div class="mt-2 space-y-2">
+                <input type="password" id="custom-api-key" placeholder="Gemini API Key (선택사항, 기본 제공)" class="w-full p-2 rounded-lg bg-arcade-bg border border-arcade-border text-xs text-white">
+                <p class="text-[10px] text-gray-500">* 비워둘 경우 기본 빌드인 AI 파이프라인으로 동작합니다.</p>
+              </div>
+            </details>
+          </div>
+
+          <!-- Generate Button -->
+          <button id="btn-generate" onclick="generateGameWithAI()" class="w-full py-4 rounded-xl bg-gradient-to-r from-arcade-neonCyan via-arcade-neonPurple to-arcade-neonPink hover:opacity-95 text-white font-extrabold text-sm tracking-wide shadow-neon-purple flex items-center justify-center space-x-2 transition-all transform active:scale-98">
+            <i class="fa-solid fa-microchip text-base"></i>
+            <span>AI 게임 생성 시작하기</span>
+          </button>
+
+          <!-- Generation Progress Indicator -->
+          <div id="gen-progress" class="hidden space-y-2 p-3 bg-arcade-bg/60 rounded-xl border border-arcade-border">
+            <div class="flex items-center justify-between text-xs">
+              <span id="gen-status-text" class="font-bold text-arcade-neonCyan animate-pulse">AI 게임 엔진 구동 중...</span>
+              <span id="gen-percent" class="text-gray-400 font-mono">0%</span>
+            </div>
+            <div class="w-full bg-arcade-card h-2 rounded-full overflow-hidden">
+              <div id="gen-progress-bar" class="bg-gradient-to-r from-arcade-neonCyan to-arcade-neonPink h-full w-0 transition-all duration-300"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Live Sandbox & Code Inspector (Right 7 cols) -->
+        <div class="lg:col-span-7 flex flex-col glass-panel rounded-2xl overflow-hidden border border-arcade-border min-h-[500px]">
+          
+          <!-- Sandbox Header Bar -->
+          <div class="bg-arcade-card px-4 py-3 border-b border-arcade-border flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
+              <span id="preview-game-title" class="text-xs font-bold text-gray-300 ml-2">미리보기 : 준비됨</span>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <button onclick="toggleCodeView()" class="px-2.5 py-1 rounded-lg bg-arcade-bg hover:bg-arcade-border text-xs text-gray-300 flex items-center space-x-1">
+                <i class="fa-solid fa-code text-arcade-neonCyan"></i>
+                <span id="code-toggle-text">코드 보기</span>
+              </button>
+              <button id="btn-publish" onclick="publishCreatedGame()" disabled class="px-3 py-1 rounded-lg bg-arcade-neonGreen/20 text-arcade-neonGreen border border-arcade-neonGreen/40 opacity-50 cursor-not-allowed text-xs font-bold flex items-center space-x-1 transition-all">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span>아케이드에 출품하기</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Preview Sandbox Frame Container -->
+          <div class="relative flex-1 bg-black min-h-[420px] flex items-center justify-center overflow-hidden">
+            
+            <!-- Sandbox Frame -->
+            <iframe id="sandbox-iframe" class="w-full h-full border-0 absolute inset-0 bg-black" sandbox="allow-scripts allow-same-origin"></iframe>
+
+            <!-- Code Overlay Area -->
+            <textarea id="code-inspector" readonly class="hidden w-full h-full absolute inset-0 bg-gray-950 p-4 font-mono text-xs text-green-400 z-10 focus:outline-none resize-none overflow-auto leading-relaxed border-0"></textarea>
+
+            <!-- Initial Placeholder Screen -->
+            <div id="sandbox-placeholder" class="text-center p-6 space-y-3 max-w-sm z-0">
+              <div class="w-16 h-16 rounded-2xl bg-arcade-card border border-arcade-border mx-auto flex items-center justify-center text-arcade-neonCyan text-2xl">
+                <i class="fa-solid fa-gamepad animate-bounce"></i>
+              </div>
+              <h3 class="text-white font-bold text-base">게임 미리보기 대기 중</h3>
+              <p class="text-gray-400 text-xs leading-relaxed">왼쪽에서 프롬프트를 입력하고 'AI 게임 생성 시작하기' 버튼을 누르면 이 화면에서 생성된 게임이 실행됩니다.</p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 3: LEADERBOARD & HALL OF FAME ==================== -->
+    <section id="tab-leaderboard" class="tab-content hidden space-y-6">
+      
+      <!-- Leaderboard Header -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-arcade-card p-6 rounded-2xl border border-arcade-border">
+        <div>
+          <div class="inline-flex items-center space-x-2 text-arcade-neonYellow text-xs font-bold mb-1">
+            <i class="fa-solid fa-crown"></i>
+            <span>글로벌 플레이어 랭킹</span>
+          </div>
+          <h2 class="text-2xl font-extrabold text-white">명예의 전당 & 주간 랭킹전</h2>
+          <p class="text-gray-400 text-xs sm:text-sm mt-1">유저들이 제작한 게임을 플레이하고 최상위 점수를 기록하여 챔피언 트로피를 차지하세요!</p>
+        </div>
+
+        <div class="flex items-center space-x-2 bg-arcade-bg p-1.5 rounded-xl border border-arcade-border">
+          <button onclick="switchLeaderboardScope('global')" id="lb-scope-global" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-arcade-neonPurple/40">
+            글로벌 통합
+          </button>
+          <button onclick="switchLeaderboardScope('weekly')" id="lb-scope-weekly" class="px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white">
+            주간 챔피언십
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Top Players Podium (Left 2 cols) -->
+        <div class="lg:col-span-2 space-y-4">
+          <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center space-x-2">
+            <i class="fa-solid fa-ranking-star text-arcade-neonYellow"></i>
+            <span>Top 레전드 플레이어</span>
+          </h3>
+
+          <div id="leaderboard-list" class="space-y-3">
+            <!-- Dynamic Leaderboard Items Inserted Here -->
+          </div>
+        </div>
+
+        <!-- Featured Competition Game & Challenge Card (Right 1 col) -->
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center space-x-2">
+            <i class="fa-solid fa-bolt text-arcade-neonPink"></i>
+            <span>이주의 추천 챌린지</span>
+          </h3>
+
+          <div class="glass-panel p-5 rounded-2xl border border-arcade-neonPink/40 relative overflow-hidden space-y-4">
+            <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-arcade-neonPink/20 rounded-full blur-xl pointer-events-none"></div>
+
+            <span class="px-2.5 py-1 rounded-md bg-arcade-neonPink text-black font-extrabold text-[10px] tracking-wider uppercase">HOT CHALLENGE</span>
+            <h4 id="featured-challenge-title" class="text-lg font-bold text-white">사이버 네온 슈터 2077</h4>
+            <p id="featured-challenge-desc" class="text-xs text-gray-300 leading-relaxed">
+              화려한 탄막과 별을 수집해 상위 점수에 도전하세요! 최고 점수 기록자에게는 500 CR 상금이 부여됩니다.
+            </p>
+
+            <div class="p-3 bg-arcade-bg/80 rounded-xl border border-arcade-border space-y-1">
+              <div class="flex justify-between text-xs text-gray-400">
+                <span>현재 1위 기록</span>
+                <span id="featured-challenge-record" class="text-arcade-neonYellow font-bold font-mono">14,850 Pts</span>
+              </div>
+              <div class="flex justify-between text-xs text-gray-400">
+                <span>챔피언</span>
+                <span id="featured-challenge-holder" class="text-arcade-neonCyan font-semibold">NeonMaster_KR</span>
+              </div>
+            </div>
+
+            <button onclick="launchGame('game_1')" class="w-full py-3 rounded-xl bg-arcade-neonPink hover:bg-arcade-neonPink/90 text-white font-bold text-xs shadow-neon-pink flex items-center justify-center space-x-2 transition-all">
+              <i class="fa-solid fa-gamepad"></i>
+              <span>지금 챌린지 도전하기</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==================== GAME PLAY MODAL ==================== -->
+  <div id="game-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-arcade-card w-full max-w-5xl h-[92vh] rounded-2xl border border-arcade-border flex flex-col overflow-hidden shadow-2xl relative">
+      
+      <!-- Modal Top Bar -->
+      <div class="bg-arcade-bg px-4 py-3 border-b border-arcade-border flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <span id="modal-game-badge" class="px-2 py-0.5 rounded bg-arcade-neonPurple/30 text-arcade-neonCyan border border-arcade-neonPurple/50 text-[10px] font-bold">ARCADE</span>
+          <h3 id="modal-game-title" class="text-sm sm:text-base font-bold text-white truncate max-w-xs sm:max-w-md">게임 제목</h3>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button onclick="shareCurrentGame()" class="p-2 rounded-lg bg-arcade-card hover:bg-arcade-border text-gray-300 text-xs transition-colors" title="공유">
+            <i class="fa-solid fa-share-nodes"></i>
+          </button>
+          <button onclick="toggleModalFullscreen()" class="p-2 rounded-lg bg-arcade-card hover:bg-arcade-border text-gray-300 text-xs transition-colors" title="전체화면">
+            <i class="fa-solid fa-expand"></i>
+          </button>
+          <button onclick="closeGameModal()" class="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs transition-colors">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body (Game Frame + Leaderboard Sidebar) -->
+      <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+        
+        <!-- Game Canvas Container (Left) -->
+        <div class="flex-1 bg-black relative flex items-center justify-center overflow-hidden">
+          <iframe id="modal-game-iframe" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+
+        <!-- Sidebar: Game Details & Live High Scores (Right) -->
+        <div class="w-full lg:w-80 bg-arcade-bg border-t lg:border-t-0 lg:border-l border-arcade-border p-4 flex flex-col justify-between space-y-4 overflow-y-auto">
+          
+          <div class="space-y-4">
+            <!-- Creator Info -->
+            <div class="flex items-center space-x-3 p-3 bg-arcade-card rounded-xl border border-arcade-border">
+              <img id="modal-creator-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Maker" class="w-9 h-9 rounded-lg bg-arcade-border" alt="Creator">
+              <div class="overflow-hidden">
+                <span class="text-[10px] text-gray-400 block uppercase">Created By</span>
+                <span id="modal-creator-name" class="text-xs font-bold text-white truncate block">크리에이터</span>
+              </div>
+            </div>
+
+            <!-- Game Description -->
+            <div>
+              <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">게임 조작 및 정보</h4>
+              <p id="modal-game-desc" class="text-xs text-gray-300 leading-relaxed bg-arcade-card p-3 rounded-xl border border-arcade-border">
+                방향키 및 스페이스바를 사용하여 게임을 제어하세요.
+              </p>
+            </div>
+
+            <!-- Live Game Leaderboard -->
+            <div>
+              <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+                <span>🏆 이 게임의 랭킹</span>
+                <span class="text-[10px] text-arcade-neonCyan font-mono">TOP 5</span>
+              </h4>
+              <div id="modal-game-scores" class="space-y-2">
+                <!-- Dynamic Game Score Items -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Score Submit Box & Play Again -->
+          <div class="p-3 bg-arcade-card rounded-xl border border-arcade-border space-y-3">
+            <div class="space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="text-xs text-gray-400">내 현재 기록</span>
+                <span id="modal-user-last-score" class="text-sm font-bold font-mono text-arcade-neonYellow">0 Pts</span>
+              </div>
+              <button onclick="submitScoreForCurrentGame()" id="btn-submit-score" disabled class="w-full py-2 rounded-lg bg-arcade-neonPurple/50 text-gray-400 text-xs font-bold cursor-not-allowed transition-all">
+                랭킹에 점수 등록하기
+              </button>
+            </div>
+            
+            <button onclick="restartCurrentGame()" id="btn-restart-game" class="w-full py-2 rounded-lg border border-arcade-neonCyan text-arcade-neonCyan hover:bg-arcade-neonCyan/10 text-xs font-bold transition-all flex items-center justify-center space-x-2">
+              <i class="fa-solid fa-rotate-right"></i>
+              <span>게임 다시 시작하기</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <!-- Firebase Cloud Persistence SDK Setup -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Firebase environment configuration
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'nexus-ai-arcade';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+      apiKey: "demo-api-key",
+      authDomain: "demo-project.firebaseapp.com",
+      projectId: "demo-project",
+      storageBucket: "demo-project.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123456789:web:abcdef"
+    };
+
+    let db, auth, currentUserAuth = null;
+    let isFirebaseReady = false;
+
+    async function initFirebase() {
+      try {
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+
+        // Rule 3: Auth before any query operations
+        const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        if (initialToken) {
+          const userCredential = await signInWithCustomToken(auth, initialToken);
+          currentUserAuth = userCredential.user;
+        } else {
+          const userCredential = await signInAnonymously(auth);
+          currentUserAuth = userCredential.user;
+        }
+
+        if (currentUserAuth) {
+          isFirebaseReady = true;
+          setupFirestoreListeners();
+        }
+      } catch (e) {
+        console.warn("Firebase initial auth warning (operating with local fallback):", e);
+      }
+    }
+
+    // Rule 1: Strict collection paths
+    function getGamesCollection() {
+      return collection(db, 'artifacts', appId, 'public', 'data', 'games');
+    }
+
+    function getScoresCollection() {
+      return collection(db, 'artifacts', appId, 'public', 'data', 'scores');
+    }
+
+    function setupFirestoreListeners() {
+      if (!isFirebaseReady) return;
+
+      // Realtime listener for created games (Rule 2: No complex queries, sort in JS)
+      onSnapshot(getGamesCollection(), (snapshot) => {
+        const loadedGames = [];
+        snapshot.forEach(doc => {
+          loadedGames.push({ id: doc.id, ...doc.data() });
+        });
+
+        if (loadedGames.length > 0) {
+          // Sync with local games list
+          const cloudGameIds = new Set(loadedGames.map(g => g.id));
+          const builtIns = defaultGamesList.filter(g => !cloudGameIds.has(g.id));
+          gamesList = [...loadedGames, ...builtIns];
+          renderGamesGrid();
+        }
+      }, (error) => {
+        console.error("Firestore games snapshot error:", error);
+      });
+
+      // Realtime listener for leaderboard scores
+      onSnapshot(getScoresCollection(), (snapshot) => {
+        const loadedScores = {};
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.gameId) {
+            if (!loadedScores[data.gameId]) loadedScores[data.gameId] = [];
+            loadedScores[data.gameId].push(data);
+          }
+        });
+
+        // Memory sorting
+        Object.keys(loadedScores).forEach(gId => {
+          loadedScores[gId].sort((a, b) => b.score - a.score);
+          loadedScores[gId].forEach((item, index) => item.rank = index + 1);
+        });
+
+        gameScoresStore = { ...gameScoresStore, ...loadedScores };
+        renderLeaderboard();
+        if (currentPlayingGame) {
+          renderModalGameScores(currentPlayingGame.id);
+        }
+      }, (error) => {
+        console.error("Firestore scores snapshot error:", error);
+      });
+    }
+
+    // Expose cloud save utilities
+    window.saveGameToCloud = async function(gameObj) {
+      if (!isFirebaseReady || !currentUserAuth) return false;
+      try {
+        await addDoc(getGamesCollection(), gameObj);
+        return true;
+      } catch (err) {
+        console.error("Error saving game to cloud:", err);
+        return false;
+      }
+    };
+
+    window.saveScoreToCloud = async function(scoreObj) {
+      if (!isFirebaseReady || !currentUserAuth) return false;
+      try {
+        await addDoc(getScoresCollection(), scoreObj);
+        return true;
+      } catch (err) {
+        console.error("Error saving score to cloud:", err);
+        return false;
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initFirebase();
+    });
+  </script>
+
+  <script>
+
+    // Global App State
+    let currentUser = {
+      name: '종합병원',
+      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=GamerZero',
+      tokens: 1250
+    };
+
+    // Ambient Background Animation Logic
+    function initAmbientBackground() {
+      const canvas = document.getElementById('ambient-bg-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let width = canvas.width = window.innerWidth;
+      let height = canvas.height = window.innerHeight;
+
+      let mouseX = width / 2;
+      let mouseY = height / 2;
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
+
+      // Floating Particles
+      const particles = [];
+      const particleCount = 15; // 렉을 줄이기 위해 파티클 개수 대폭 감소
+
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          radius: Math.random() * 2 + 1,
+          color: i % 2 === 0 ? '#00F0FF' : i % 3 === 0 ? '#FF007A' : '#7000FF',
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: (Math.random() - 0.5) * 0.8,
+          alpha: Math.random() * 0.6 + 0.2
+        });
+      }
+
+      let gridOffset = 0;
+
+      function renderBg() {
+        ctx.clearRect(0, 0, width, height);
+
+        // 1. Perspective Cyber Grid at the bottom
+        ctx.save();
+        ctx.strokeStyle = 'rgba(112, 0, 255, 0.18)';
+        ctx.lineWidth = 1;
+        
+        const horizon = height * 0.65;
+        gridOffset = (gridOffset + 0.5) % 30;
+
+        // Vertical Perspective lines
+        const numLines = 24;
+        for (let i = -numLines; i <= numLines; i++) {
+          const xStart = width / 2 + (i * 20);
+          const xEnd = width / 2 + (i * 90) + (mouseX - width/2) * 0.1;
+          ctx.beginPath();
+          ctx.moveTo(xStart, horizon);
+          ctx.lineTo(xEnd, height);
+          ctx.stroke();
+        }
+
+        // Horizontal Grid lines moving downwards
+        for (let y = horizon; y < height; y += 15) {
+          const adjustedY = y + (gridOffset % 15);
+          if (adjustedY <= height) {
+            ctx.beginPath();
+            ctx.moveTo(0, adjustedY);
+            ctx.lineTo(width, adjustedY);
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+
+        // 2. Interactive Particles
+        particles.forEach(p => {
+          p.x += p.vx + (mouseX - width/2) * 0.0002;
+          p.y += p.vy + (mouseY - height/2) * 0.0002;
+
+          if (p.x < 0) p.x = width;
+          if (p.x > width) p.x = 0;
+          if (p.y < 0) p.y = height;
+          if (p.y > height) p.y = 0;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          // 프레임 드랍의 주 원인인 캔버스 섀도우(그림자) 연산 제거
+          ctx.globalAlpha = p.alpha;
+          ctx.fill();
+          ctx.restore();
+        });
+
+        requestAnimationFrame(renderBg);
+      }
+
+      renderBg();
+    }
+
+    let gamesList = [
+      {
+        id: 'game_1',
+        title: '사이버 네온 슈터 2077',
+        creator: 'NeonMaster_KR',
+        creatorAvatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=NeonMaster',
+        category: 'action',
+        plays: 1420,
+        likes: 389,
+        topScore: 14850,
+        topPlayer: 'NeonMaster_KR',
+        prompt: '네온 스타일 우주 슈팅 게임. 플레이어는 방향키로 움직이고 스페이스바로 미사일을 발사하여 내려오는 적을 파괴합니다.',
+        tags: ['네온', '슈팅', '탄막', '물리엔진'],
+        code: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { margin:0; overflow:hidden; background:#080810; font-family:sans-serif; color:#fff; text-align:center; user-select:none; }
+    canvas { display:block; margin:0 auto; background:#05050d; cursor:crosshair; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <script>
+    const c = document.getElementById('c'), ctx = c.getContext('2d');
+    c.width = window.innerWidth; c.height = window.innerHeight;
+    let score = 0, gameOver = false;
+    
+    // 현실적인 물리 엔진 변수 (속도, 가속도, 마찰력)
+    let player = { x: c.width/2, y: c.height - 60, w: 30, h: 30, vx: 0, speed: 1.5, maxSpeed: 10, friction: 0.85 };
+    let bullets = [], enemies = [], particles = [], keys = {};
+    let shakeTime = 0;
+
+    window.onkeydown = e => keys[e.code] = true;
+    window.onkeyup = e => keys[e.code] = false;
+
+    function spawnEnemy() {
+      enemies.push({ x: Math.random()*(c.width-30), y: -30, w: 26, h: 26, speed: 2 + Math.random()*2, hp: 2 });
+    }
+    setInterval(spawnEnemy, 800);
+
+    function shoot() {
+      bullets.push({ x: player.x + player.w/2 - 3, y: player.y, w: 6, h: 12, speed: 15 });
+      player.y += 4; // 발사 반동 효과 (Recoil)
+    }
+    
+    // 타격감을 위한 파티클 생성 시스템
+    function explode(x, y, color) {
+      for(let i=0; i<20; i++) {
+        particles.push({
+          x: x, y: y,
+          vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12,
+          life: 1, color: color, size: Math.random()*4+2
+        });
+      }
+      shakeTime = 8; // 피격 및 폭발 시 화면 흔들림 효과
+    }
+
+    let lastShoot = 0;
+    function update() {
+      if(gameOver) return;
+      
+      // 관성과 마찰력을 적용한 플레이어 이동 계산
+      if(keys['ArrowLeft'] || keys['KeyA']) player.vx -= player.speed;
+      if(keys['ArrowRight'] || keys['KeyD']) player.vx += player.speed;
+      
+      // 최고 속도 제한
+      if(player.vx > player.maxSpeed) player.vx = player.maxSpeed;
+      if(player.vx < -player.maxSpeed) player.vx = -player.maxSpeed;
+      
+      player.vx *= player.friction; // 마찰력에 의한 감속
+      player.x += player.vx;
+      
+      // 벽에 부딪혔을 때의 튕김(반발력) 효과
+      if(player.x < 0) { player.x = 0; player.vx *= -0.6; }
+      if(player.x > c.width - player.w) { player.x = c.width - player.w; player.vx *= -0.6; }
+      
+      // 사격 반동 후 원래 위치로 복귀
+      if(player.y > c.height - 60) player.y -= 0.5;
+
+      if(keys['Space'] && Date.now() - lastShoot > 150) {
+        shoot(); lastShoot = Date.now();
+      }
+
+      bullets.forEach((b, i) => {
+        b.y -= b.speed;
+        if(b.y < -10) bullets.splice(i, 1);
+      });
+
+      enemies.forEach((e, ei) => {
+        e.y += e.speed;
+        if(e.y > c.height) {
+          gameOver = true;
+          window.parent.postMessage({ type: 'GAME_OVER', score: score }, '*');
+        }
+        // 총알과 적의 충돌 처리
+        bullets.forEach((b, bi) => {
+          if(b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
+            e.hp--;
+            bullets.splice(bi, 1);
+            explode(b.x, b.y, '#ffffff'); // 피격 스파크
+            if(e.hp <= 0) {
+              score += 100;
+              explode(e.x+e.w/2, e.y+e.h/2, '#FFE600'); // 파괴 파티클 폭발
+              enemies.splice(ei, 1);
+            }
+          }
+        });
+      });
+      
+      // 파티클 물리 업데이트 (공기 저항 및 생명 주기)
+      particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy;
+        p.vx *= 0.92; p.vy *= 0.92; // 공기 저항
+        p.life -= 0.03; // 서서히 사라짐
+        if(p.life <= 0) particles.splice(i, 1);
+      });
+      
+      if(shakeTime > 0) shakeTime--;
+    }
+
+    function draw() {
+      ctx.save();
+      // 카메라 셰이크(흔들림) 렌더링 적용
+      if(shakeTime > 0) {
+        ctx.translate((Math.random()-0.5)*8, (Math.random()-0.5)*8);
+      }
+      ctx.clearRect(0, 0, c.width, c.height);
+      
+      // Player 렌더링 (이동 방향에 따라 기체가 미세하게 기울어짐)
+      ctx.fillStyle = '#00F0FF';
+      ctx.shadowColor = '#00F0FF'; ctx.shadowBlur = 10;
+      ctx.save();
+      ctx.translate(player.x + player.w/2, player.y + player.h/2);
+      ctx.rotate(player.vx * 0.04);
+      ctx.fillRect(-player.w/2, -player.h/2, player.w, player.h);
+      ctx.restore();
+
+      // Bullets
+      ctx.fillStyle = '#FF007A';
+      ctx.shadowColor = '#FF007A';
+      bullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
+
+      // Enemies
+      ctx.fillStyle = '#FFE600';
+      ctx.shadowColor = '#FFE600';
+      enemies.forEach(e => ctx.fillRect(e.x, e.y, e.w, e.h));
+      
+      // Particles 렌더링
+      ctx.shadowBlur = 0;
+      particles.forEach(p => {
+         ctx.fillStyle = p.color;
+         ctx.globalAlpha = Math.max(0, p.life);
+         ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+         ctx.globalAlpha = 1;
+      });
+
+      // Score
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.fillText('SCORE: ' + score, 20, 40);
+
+      if(gameOver) {
+        ctx.fillStyle = 'rgba(0,0,0,0.85)';
+        ctx.fillRect(-20, -20, c.width+40, c.height+40);
+        ctx.fillStyle = '#FF007A';
+        ctx.font = 'bold 36px sans-serif';
+        ctx.fillText('GAME OVER', c.width/2 - 110, c.height/2 - 20);
+        ctx.fillStyle = '#fff';
+        ctx.font = '20px sans-serif';
+        ctx.fillText('최종 점수: ' + score, c.width/2 - 70, c.height/2 + 20);
+      }
+      ctx.restore();
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+    loop();
+  <\/script>
+</body>
+</html>`
+      },
+      {
+        id: 'game_2',
+        title: '하이퍼 네온 러너',
+        creator: 'CyberPixel',
+        creatorAvatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=CyberPixel',
+        category: 'arcade',
+        plays: 980,
+        likes: 215,
+        topScore: 840,
+        topPlayer: 'PixelKing',
+        prompt: '점프하여 계속해서 나타나는 가시와 벽을 회피하는 스피디한 2D 러닝 게임',
+        tags: ['러너', '점프', '스피드'],
+        code: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { margin:0; overflow:hidden; background:#000; color:#fff; font-family:sans-serif; text-align:center; }
+    canvas { display:block; margin:0 auto; background:#111; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <script>
+    const c = document.getElementById('c'), ctx = c.getContext('2d');
+    c.width = window.innerWidth; c.height = window.innerHeight;
+    let score = 0, gameOver = false;
+    let p = { x: 80, y: c.height - 100, w: 30, h: 40, vy: 0, jumping: false };
+    let obstacles = [];
+    const gravity = 0.8;
+
+    window.onkeydown = window.ontouchstart = () => {
+      if(!p.jumping && !gameOver) { p.vy = -14; p.jumping = true; }
+    };
+
+    function spawnObs() {
+      obstacles.push({ x: c.width, w: 25, h: 35 + Math.random()*30 });
+    }
+    setInterval(spawnObs, 1400);
+
+    function update() {
+      if(gameOver) return;
+      p.vy += gravity;
+      p.y += p.vy;
+      if(p.y > c.height - 100) {
+        p.y = c.height - 100; p.vy = 0; p.jumping = false;
+      }
+
+      obstacles.forEach((o, i) => {
+        o.x -= 6;
+        if(o.x < -30) { obstacles.splice(i, 1); score += 10; }
+        if(p.x < o.x + o.w && p.x + p.w > o.x && p.y + p.h > c.height - 60 - o.h) {
+          gameOver = true;
+          window.parent.postMessage({ type: 'GAME_OVER', score: score }, '*');
+        }
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0,0,c.width,c.height);
+      // Floor
+      ctx.fillStyle = '#222';
+      ctx.fillRect(0, c.height - 60, c.width, 60);
+
+      // Player
+      ctx.fillStyle = '#00FF66';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+
+      // Obstacles
+      ctx.fillStyle = '#FF007A';
+      obstacles.forEach(o => ctx.fillRect(o.x, c.height - 60 - o.h, o.w, o.h));
+
+      // Score
+      ctx.fillStyle = '#fff';
+      ctx.font = '24px sans-serif';
+      ctx.fillText('SCORE: ' + score, 20, 40);
+
+      if(gameOver) {
+        ctx.fillStyle = 'rgba(0,0,0,0.8)';
+        ctx.fillRect(0,0,c.width,c.height);
+        ctx.fillStyle = '#FF007A';
+        ctx.font = '32px sans-serif';
+        ctx.fillText('GAME OVER! SCORE: ' + score, c.width/2 - 160, c.height/2);
+      }
+    }
+    function loop() { update(); draw(); requestAnimationFrame(loop); }
+    loop();
+  <\/script>
+</body>
+</html>`
+      },
+      {
+        id: 'game_3',
+        title: '레트로 브릭 브레이커',
+        creator: 'ClassicCoder',
+        creatorAvatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=ClassicCoder',
+        category: 'puzzle',
+        plays: 750,
+        likes: 190,
+        topScore: 2400,
+        topPlayer: 'BrickMaster',
+        prompt: '공을 튕겨서 상단의 모든 색상 벽돌을 파괴하는 클래식 바운스 게임',
+        tags: ['벽돌깨기', '레트로', '바운스'],
+        code: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { margin:0; background:#000; overflow:hidden; text-align:center; color:#fff; font-family:sans-serif; }
+    canvas { background:#0a0a14; display:block; margin:0 auto; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <script>
+    const c = document.getElementById('c'), ctx = c.getContext('2d');
+    c.width = window.innerWidth; c.height = window.innerHeight;
+    let score = 0, gameOver = false;
+    let pad = { x: c.width/2 - 50, y: c.height - 40, w: 100, h: 15 };
+    let ball = { x: c.width/2, y: c.height/2, dx: 4, dy: -4, r: 8 };
+    let bricks = [];
+    let rows = 5, cols = Math.floor(c.width / 60);
+
+    for(let r=0; r<rows; r++) {
+      for(let col=0; col<cols; col++) {
+        bricks.push({ x: col*60 + 10, y: r*25 + 50, w: 50, h: 18, active: true });
+      }
+    }
+
+    window.onmousemove = e => pad.x = e.clientX - pad.w/2;
+    window.ontouchmove = e => { if(e.touches[0]) pad.x = e.touches[0].clientX - pad.w/2; };
+
+    function update() {
+      if(gameOver) return;
+      ball.x += ball.dx; ball.y += ball.dy;
+
+      if(ball.x < 0 || ball.x > c.width) ball.dx *= -1;
+      if(ball.y < 0) ball.dy *= -1;
+      if(ball.y > c.height) {
+        gameOver = true;
+        window.parent.postMessage({ type: 'GAME_OVER', score: score }, '*');
+      }
+
+      // Paddle collision
+      if(ball.y + ball.r >= pad.y && ball.x >= pad.x && ball.x <= pad.x + pad.w) {
+        ball.dy = -Math.abs(ball.dy);
+      }
+
+      // Brick collision
+      bricks.forEach(b => {
+        if(b.active && ball.x > b.x && ball.x < b.x + b.w && ball.y > b.y && ball.y < b.y + b.h) {
+          b.active = false;
+          ball.dy *= -1;
+          score += 50;
+        }
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0,0,c.width,c.height);
+      // Paddle
+      ctx.fillStyle = '#00F0FF'; ctx.fillRect(pad.x, pad.y, pad.w, pad.h);
+      // Ball
+      ctx.fillStyle = '#FFE600'; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
+      // Bricks
+      bricks.forEach(b => {
+        if(b.active) {
+          ctx.fillStyle = '#FF007A';
+          ctx.fillRect(b.x, b.y, b.w, b.h);
+        }
+      });
+      ctx.fillStyle = '#fff'; ctx.font = '20px sans-serif'; ctx.fillText('SCORE: ' + score, 20, 30);
+      if(gameOver) {
+        ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0,0,c.width,c.height);
+        ctx.fillStyle = '#FF007A'; ctx.font = '32px sans-serif'; ctx.fillText('GAME OVER! SCORE: ' + score, c.width/2 - 160, c.height/2);
+      }
+    }
+    function loop() { update(); draw(); requestAnimationFrame(loop); }
+    loop();
+  <\/script>
+</body>
+</html>`
+      }
+    ];
+
+    // Backup of built-in games
+    const defaultGamesList = [...gamesList];
+
+    let gameScoresStore = {
+      'game_1': [
+        { rank: 1, name: 'NeonMaster_KR', score: 14850, date: '2026-10-10' },
+        { rank: 2, name: 'CyberGod', score: 12300, date: '2026-10-11' },
+        { rank: 3, name: 'StarRider', score: 9800, date: '2026-10-11' }
+      ],
+      'game_2': [
+        { rank: 1, name: 'PixelKing', score: 840, date: '2026-10-09' },
+        { rank: 2, name: 'SpeedyRunner', score: 710, date: '2026-10-11' }
+      ],
+      'game_3': [
+        { rank: 1, name: 'BrickMaster', score: 2400, date: '2026-10-08' },
+        { rank: 2, name: 'ArcadeGuy', score: 1850, date: '2026-10-12' }
+      ]
+    };
+
+    let activeFilter = 'all';
+    let currentPlayingGame = null;
+    let generatedGameCode = null;
+    let lastPlayedScore = 0;
+
+
+    window.onload = function() {
+      initAmbientBackground();
+      renderGamesGrid();
+      renderLeaderboard();
+      setupMessageListener();
+    };
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+      // Update Nav active style
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-white', 'bg-arcade-neonPurple/30', 'border', 'border-arcade-neonPurple/50');
+        btn.classList.add('text-gray-400');
+      });
+
+      const activeNav = document.getElementById('nav-' + tabId);
+      if(activeNav) {
+        activeNav.classList.remove('text-gray-400');
+        activeNav.classList.add('text-white', 'bg-arcade-neonPurple/30', 'border', 'border-arcade-neonPurple/50');
+      }
+    }
+
+    function setCategoryFilter(category) {
+      activeFilter = category;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.classList.remove('bg-arcade-neonCyan/20', 'text-arcade-neonCyan', 'border-arcade-neonCyan/40');
+        btn.classList.add('bg-arcade-card', 'text-gray-400', 'border-arcade-border');
+      });
+      event.target.classList.remove('bg-arcade-card', 'text-gray-400', 'border-arcade-border');
+      event.target.classList.add('bg-arcade-neonCyan/20', 'text-arcade-neonCyan', 'border-arcade-neonCyan/40');
+      
+      renderGamesGrid();
+    }
+
+    function filterGames() {
+      renderGamesGrid();
+    }
+
+
+    function renderGamesGrid() {
+      const grid = document.getElementById('games-grid');
+      const searchQuery = document.getElementById('game-search').value.toLowerCase();
+
+      let filtered = gamesList.filter(g => {
+        const matchesCategory = (activeFilter === 'all') ||
+          (activeFilter === 'popular' && g.plays > 800) ||
+          (g.category === activeFilter);
+        const matchesSearch = g.title.toLowerCase().includes(searchQuery) ||
+          g.creator.toLowerCase().includes(searchQuery) ||
+          g.tags.some(t => t.toLowerCase().includes(searchQuery));
+        return matchesCategory && matchesSearch;
+      });
+
+      if(filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-12 space-y-3">
+            <div class="text-4xl">🕹️</div>
+            <p class="text-gray-400 text-sm">해당 조건에 맞는 게임이 없습니다.</p>
+            <button onclick="switchTab('create')" class="px-4 py-2 rounded-xl bg-arcade-neonPurple text-white text-xs font-bold">
+              직접 게임 만들기
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(game => `
+        <div class="glass-panel rounded-2xl overflow-hidden border border-arcade-border hover:border-arcade-neonCyan/50 transition-all duration-300 flex flex-col justify-between group">
+          <!-- Card Thumbnail Area -->
+          <div class="relative h-44 bg-gradient-to-br from-arcade-card via-gray-900 to-arcade-neonPurple/20 p-4 flex flex-col justify-between overflow-hidden">
+            <div class="absolute inset-0 bg-black/30 group-hover:bg-transparent transition-colors"></div>
+
+            <div class="relative z-10 flex justify-between items-start">
+              <span class="px-2.5 py-1 rounded-md bg-arcade-bg/80 text-arcade-neonCyan border border-arcade-neonCyan/30 text-[10px] font-bold">
+                ${game.category.toUpperCase()}
+              </span>
+              <button onclick="likeGame('${game.id}', event)" class="p-1.5 rounded-lg bg-arcade-bg/70 hover:bg-arcade-card text-xs text-arcade-neonPink border border-arcade-border transition-all">
+                <i class="fa-solid fa-heart"></i> <span class="text-[11px] font-bold text-gray-200">${game.likes}</span>
+              </button>
+            </div>
+
+            <div class="relative z-10 space-y-1">
+              <h3 class="text-base font-bold text-white group-hover:text-arcade-neonCyan transition-colors truncate">${game.title}</h3>
+              <div class="flex items-center space-x-2 text-[11px] text-gray-400">
+                <img src="${game.creatorAvatar}" class="w-4 h-4 rounded-full" alt="avatar">
+                <span>${game.creator}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Content Body -->
+          <div class="p-4 space-y-3 flex-1 flex flex-col justify-between">
+            <div class="space-y-2">
+              <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">${game.prompt}</p>
+              
+              <div class="flex flex-wrap gap-1">
+                ${game.tags.map(t => `<span class="px-2 py-0.5 rounded bg-arcade-border/50 text-gray-300 text-[10px]">#${t}</span>`).join('')}
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-arcade-border flex items-center justify-between">
+              <div class="text-[11px] text-gray-400 space-x-2">
+                <span><i class="fa-solid fa-play text-gray-500"></i> ${game.plays}</span>
+                <span><i class="fa-solid fa-trophy text-arcade-neonYellow"></i> ${game.topScore}</span>
+              </div>
+
+              <button onclick="launchGame('${game.id}')" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-arcade-neonCyan to-arcade-neonPurple hover:opacity-90 text-white font-bold text-xs shadow-neon-cyan flex items-center space-x-1.5 transition-all">
+                <i class="fa-solid fa-play"></i>
+                <span>플레이</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function applyPreset(text) {
+      document.getElementById('prompt-input').value = text;
+      showToast("템플릿이 적용되었습니다!", "info");
+    }
+
+
+    async function generateGameWithAI() {
+      const prompt = document.getElementById('prompt-input').value.trim();
+      const theme = document.getElementById('theme-select').value;
+      const genre = document.getElementById('genre-select').value;
+      const customKey = document.getElementById('custom-api-key').value.trim();
+
+      if (!prompt) {
+        showToast("만들고 싶은 게임 설명을 입력해주세요!", "warning");
+        return;
+      }
+
+      const genBtn = document.getElementById('btn-generate');
+      const progressBox = document.getElementById('gen-progress');
+      const progressBar = document.getElementById('gen-progress-bar');
+      const progressStatus = document.getElementById('gen-status-text');
+      const progressPercent = document.getElementById('gen-percent');
+
+      genBtn.disabled = true;
+      genBtn.classList.add('opacity-50');
+      progressBox.classList.remove('hidden');
+
+      // Animate progress simulation
+      let progress = 10;
+      progressBar.style.width = '10%';
+      progressStatus.innerText = "아이디어 분석 및 구조 설계 중...";
+      progressPercent.innerText = "10%";
+
+      const updateProgress = (val, text) => {
+        progress = val;
+        progressBar.style.width = val + '%';
+        progressStatus.innerText = text;
+        progressPercent.innerText = val + '%';
+      };
+
+      setTimeout(() => updateProgress(35, "게임 루프 및 물리 엔진 생성 중..."), 800);
+      setTimeout(() => updateProgress(65, "캔버스 그래픽 & 조작 로직 합성 중..."), 1600);
+
+      const systemPrompt = `Act as an expert HTML5 Canvas Game Developer. Generate a full, complete, runnable single HTML page containing full CSS and JavaScript for a mini web arcade game based on the user request.
+Key Rules:
+1. The canvas should fill window or resize smoothly.
+2. Must have simple clear controls (Arrow Keys or WASD or Mouse/Touch).
+3. Track a numerical 'score'.
+4. On Game Over, MUST trigger: window.parent.postMessage({ type: 'GAME_OVER', score: score }, '*');
+5. Dark theme styling, vibrant neon/colorful aesthetic.
+6. Return ONLY standard valid clean HTML code with inline JS inside <script> tags.
+7. MUST implement REALISTIC PHYSICS (friction, inertia, velocity) and VISUAL JUICE (particle explosions, screen shake, recoil) to make the game feel immersive and realistic.`;
+
+      const userQuery = `Game Concept: ${prompt}. Theme: ${theme}, Genre: ${genre}. Make sure it is fun, playable, and posts the score on Game Over.`;
+
+      const apiKey = customKey || "";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      try {
+        const payload = {
+          contents: [{ parts: [{ text: userQuery }] }],
+          systemInstruction: { parts: [{ text: systemPrompt }] }
+        };
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        const candidateText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (candidateText) {
+          updateProgress(90, "최종 코드 검증 및 샌드박스 로딩 중...");
+          
+          // Clean markdown formatting if returned
+          let code = candidateText.replace(/```html/g, '').replace(/```/g, '').trim();
+          generatedGameCode = code;
+
+          setTimeout(() => {
+            updateProgress(100, "게임 생성 완료!");
+            loadSandbox(code, prompt);
+            
+            // Enable Publish Button
+            const pubBtn = document.getElementById('btn-publish');
+            pubBtn.disabled = false;
+            pubBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            genBtn.disabled = false;
+            genBtn.classList.remove('opacity-50');
+            showToast("🎮 AI 게임 생성이 완료되었습니다!", "success");
+          }, 600);
+
+        } else {
+          throw new Error("Invalid response format");
+        }
+
+      } catch (err) {
+        console.warn("API Generation fallback to local procedural generator:", err);
+        updateProgress(90, "로컬 파이프라인으로 예비 게임 생성 중...");
+
+        // Fallback robust game generator code
+        const fallbackCode = generateFallbackCode(prompt, theme);
+        generatedGameCode = fallbackCode;
+
+        setTimeout(() => {
+          updateProgress(100, "게임 생성 완료!");
+          loadSandbox(fallbackCode, prompt);
+
+          const pubBtn = document.getElementById('btn-publish');
+          pubBtn.disabled = false;
+          pubBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+          genBtn.disabled = false;
+          genBtn.classList.remove('opacity-50');
+          showToast("🎮 로컬 엔진을 통해 게임 생성을 완료했습니다!", "success");
+        }, 500);
+      }
+    }
+
+
+    function generateFallbackCode(promptText, theme) {
+      let bgStyle = "background:#0B0F19;";
+      let gridEffect = "";
+
+      if (theme === 'synth-sunset') {
+        bgStyle = "background: linear-gradient(180deg, #110022 0%, #330044 50%, #880055 100%);";
+      } else if (theme === 'cyber-grid') {
+        bgStyle = "background: #050510;";
+        gridEffect = `
+          ctx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
+          ctx.lineWidth = 1;
+          for(let x=0; x<c.width; x+=40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,c.height); ctx.stroke(); }
+          for(let y=0; y<c.height; y+=40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(c.width,y); ctx.stroke(); }
+        `;
+      } else if (theme === 'deep-space') {
+        bgStyle = "background: radial-gradient(circle at center, #101428 0%, #03050a 100%);";
+      }
+
+      return `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { margin:0; overflow:hidden; ${bgStyle} font-family:sans-serif; color:#fff; text-align:center; }
+    canvas { display:block; margin:0 auto; background:transparent; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <script>
+    const c = document.getElementById('c'), ctx = c.getContext('2d');
+    c.width = window.innerWidth; c.height = window.innerHeight;
+    let score = 0, gameOver = false;
+    let player = { x: c.width/2, y: c.height/2, r: 18, speed: 5 };
+    let items = [], hazards = [], keys = {};
+
+    window.onkeydown = e => keys[e.code] = true;
+    window.onkeyup = e => keys[e.code] = false;
+
+    function spawn() {
+      if(items.length < 6) items.push({ x: Math.random()*(c.width-40)+20, y: Math.random()*(c.height-40)+20, r: 10 });
+      if(hazards.length < 7) hazards.push({ x: Math.random()*c.width, y: -20, r: 14, vy: 2 + Math.random()*3 });
+    }
+    setInterval(spawn, 600);
+
+    function update() {
+      if(gameOver) return;
+      if(keys['ArrowLeft'] || keys['KeyA']) player.x -= player.speed;
+      if(keys['ArrowRight'] || keys['KeyD']) player.x += player.speed;
+      if(keys['ArrowUp'] || keys['KeyW']) player.y -= player.speed;
+      if(keys['ArrowDown'] || keys['KeyS']) player.y += player.speed;
+
+      player.x = Math.max(player.r, Math.min(c.width - player.r, player.x));
+      player.y = Math.max(player.r, Math.min(c.height - player.r, player.y));
+
+      items.forEach((it, i) => {
+        let dist = Math.hypot(player.x - it.x, player.y - it.y);
+        if(dist < player.r + it.r) {
+          score += 150;
+          items.splice(i, 1);
+        }
+      });
+
+      hazards.forEach((h, i) => {
+        h.y += h.vy;
+        if(h.y > c.height + 20) hazards.splice(i, 1);
+        let dist = Math.hypot(player.x - h.x, player.y - h.y);
+        if(dist < player.r + h.r) {
+          gameOver = true;
+          window.parent.postMessage({ type: 'GAME_OVER', score: score }, '*');
+        }
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0,0,c.width,c.height);
+      ${gridEffect}
+
+      // Items
+      ctx.fillStyle = '#00FF66';
+      ctx.shadowColor = '#00FF66'; ctx.shadowBlur = 10;
+      items.forEach(it => { ctx.beginPath(); ctx.arc(it.x, it.y, it.r, 0, Math.PI*2); ctx.fill(); });
+
+      // Hazards
+      ctx.fillStyle = '#FF007A';
+      ctx.shadowColor = '#FF007A'; ctx.shadowBlur = 10;
+      hazards.forEach(h => { ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, Math.PI*2); ctx.fill(); });
+
+      // Player
+      ctx.fillStyle = '#00F0FF';
+      ctx.shadowColor = '#00F0FF'; ctx.shadowBlur = 15;
+      ctx.beginPath(); ctx.arc(player.x, player.y, player.r, 0, Math.PI*2); ctx.fill();
+
+      // UI
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff'; ctx.font = '20px sans-serif';
+      ctx.fillText('SCORE: ' + score, 20, 35);
+
+      if(gameOver) {
+        ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,c.width,c.height);
+        ctx.fillStyle = '#FF007A'; ctx.font = '32px sans-serif';
+        ctx.fillText('GAME OVER!', c.width/2 - 90, c.height/2 - 10);
+        ctx.fillStyle = '#fff'; ctx.font = '20px sans-serif';
+        ctx.fillText('최종 점수: ' + score, c.width/2 - 60, c.height/2 + 30);
+      }
+    }
+    function loop() { update(); draw(); requestAnimationFrame(loop); }
+    loop();
+  <\/script>
+</body>
+</html>`;
+    }
+
+
+    function loadSandbox(codeHtml, promptTitle) {
+      document.getElementById('sandbox-placeholder').classList.add('hidden');
+      document.getElementById('preview-game-title').innerText = "미리보기 : " + (promptTitle.substring(0, 20) + "...");
+      
+      const iframe = document.getElementById('sandbox-iframe');
+      iframe.srcdoc = codeHtml;
+
+      document.getElementById('code-inspector').value = codeHtml;
+    }
+
+    function toggleCodeView() {
+      const codeView = document.getElementById('code-inspector');
+      const toggleBtn = document.getElementById('code-toggle-text');
+      
+      if(codeView.classList.contains('hidden')) {
+        codeView.classList.remove('hidden');
+        toggleBtn.innerText = "미리보기";
+      } else {
+        codeView.classList.add('hidden');
+        toggleBtn.innerText = "코드 보기";
+      }
+    }
+
+    function publishCreatedGame() {
+      if(!generatedGameCode) return;
+
+      const promptText = document.getElementById('prompt-input').value.trim();
+      const newGameId = 'game_' + Date.now();
+
+      const newGameObj = {
+        id: newGameId,
+        title: promptText.substring(0, 18) || 'AI 커스텀 아케이드',
+        creator: currentUser.name,
+        creatorAvatar: currentUser.avatar,
+        category: document.getElementById('genre-select').value,
+        plays: 1,
+        likes: 0,
+        topScore: 0,
+        topPlayer: '-',
+        prompt: promptText,
+        tags: ['AI생성', '클라우드저장', '커스텀'],
+        code: generatedGameCode,
+        createdAt: Date.now()
+      };
+
+      // Add to local state
+      gamesList.unshift(newGameObj);
+      gameScoresStore[newGameId] = [];
+
+      // Save persistent data to Firestore
+      if (window.saveGameToCloud) {
+        window.saveGameToCloud(newGameObj);
+      }
+
+      showToast("🚀 아케이드 및 클라우드 서버에 게임이 성공적으로 저장되었습니다!", "success");
+      switchTab('arcade');
+      renderGamesGrid();
+    }
+
+
+    function launchGame(gameId) {
+      const game = gamesList.find(g => g.id === gameId);
+      if(!game) return;
+
+      currentPlayingGame = game;
+      game.plays += 1;
+
+      document.getElementById('modal-game-title').innerText = game.title;
+      document.getElementById('modal-creator-name').innerText = game.creator;
+      document.getElementById('modal-creator-avatar').src = game.creatorAvatar;
+      document.getElementById('modal-game-desc').innerText = game.prompt;
+      
+      const modalIframe = document.getElementById('modal-game-iframe');
+      modalIframe.srcdoc = game.code;
+      
+      // 게임 로드 완료 시 바로 키보드 조작이 가능하도록 포커스 지정
+      modalIframe.onload = () => {
+        modalIframe.contentWindow.focus();
+      };
+
+      renderModalGameScores(gameId);
+
+      document.getElementById('modal-user-last-score').innerText = '0 Pts';
+      const submitBtn = document.getElementById('btn-submit-score');
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      document.getElementById('game-modal').classList.remove('hidden');
+    }
+
+    function restartCurrentGame() {
+      if(!currentPlayingGame) return;
+      
+      // iframe 노드를 완전히 새로 교체하여 이전 게임 메모리와 상태를 확실하게 초기화
+      const oldIframe = document.getElementById('modal-game-iframe');
+      const newIframe = document.createElement('iframe');
+      newIframe.id = 'modal-game-iframe';
+      newIframe.className = oldIframe.className;
+      newIframe.sandbox = oldIframe.sandbox;
+      
+      oldIframe.parentNode.replaceChild(newIframe, oldIframe);
+      newIframe.srcdoc = currentPlayingGame.code;
+      
+      // 재시작 후 즉시 조작 가능하도록 포커스 맞춤
+      newIframe.onload = () => {
+        newIframe.contentWindow.focus();
+      };
+
+      // Reset score UI
+      document.getElementById('modal-user-last-score').innerText = '0 Pts';
+      const submitBtn = document.getElementById('btn-submit-score');
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-arcade-neonPurple/50');
+      submitBtn.classList.remove('bg-arcade-neonGreen', 'text-black', 'hover:bg-arcade-neonGreen/90');
+      
+      showToast("게임을 다시 시작합니다!", "info");
+    }
+
+    function closeGameModal() {
+      document.getElementById('game-modal').classList.add('hidden');
+      document.getElementById('modal-game-iframe').srcdoc = '';
+      currentPlayingGame = null;
+    }
+
+    function setupMessageListener() {
+      window.addEventListener('message', (e) => {
+        if(e.data && e.data.type === 'GAME_OVER') {
+          const score = e.data.score || 0;
+          lastPlayedScore = score;
+          
+          showToast(`🎮 게임 종료! 점수: ${score} Pts`, "info");
+
+          const scoreDisplay = document.getElementById('modal-user-last-score');
+          if(scoreDisplay) scoreDisplay.innerText = `${score} Pts`;
+
+          const submitBtn = document.getElementById('btn-submit-score');
+          if(submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-arcade-neonPurple/50');
+            submitBtn.classList.add('bg-arcade-neonGreen', 'text-black', 'hover:bg-arcade-neonGreen/90');
+          }
+        }
+      });
+    }
+
+    function submitScoreForCurrentGame() {
+      if(!currentPlayingGame || lastPlayedScore <= 0) return;
+
+      const gameId = currentPlayingGame.id;
+      const scoreObj = {
+        gameId: gameId,
+        rank: 0,
+        name: currentUser.name,
+        score: lastPlayedScore,
+        date: new Date().toISOString().split('T')[0],
+        timestamp: Date.now()
+      };
+
+      if(!gameScoresStore[gameId]) gameScoresStore[gameId] = [];
+
+      gameScoresStore[gameId].push(scoreObj);
+
+      // Sort scores descending
+      gameScoresStore[gameId].sort((a, b) => b.score - a.score);
+      gameScoresStore[gameId].forEach((item, index) => item.rank = index + 1);
+
+      // Update game top score
+      if(lastPlayedScore > currentPlayingGame.topScore) {
+        currentPlayingGame.topScore = lastPlayedScore;
+        currentPlayingGame.topPlayer = currentUser.name;
+      }
+
+      // Save persistent score to Firestore
+      if (window.saveScoreToCloud) {
+        window.saveScoreToCloud(scoreObj);
+      }
+
+      showToast("🏆 점수가 클라우드 랭킹에 안심 저장되었습니다!", "success");
+      renderModalGameScores(gameId);
+      renderLeaderboard();
+      renderGamesGrid();
+
+      const submitBtn = document.getElementById('btn-submit-score');
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+
+    function renderModalGameScores(gameId) {
+      const container = document.getElementById('modal-game-scores');
+      const scores = gameScoresStore[gameId] || [];
+
+      if(scores.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-500 italic p-2">아직 점수 기록이 없습니다. 첫 번째 챔피언이 되세요!</p>`;
+        return;
+      }
+
+      container.innerHTML = scores.slice(0, 5).map(s => `
+        <div class="flex items-center justify-between p-2 rounded-lg bg-arcade-card text-xs border border-arcade-border">
+          <div class="flex items-center space-x-2">
+            <span class="w-5 h-5 rounded-full ${s.rank === 1 ? 'bg-arcade-neonYellow text-black font-extrabold' : 'bg-arcade-border text-gray-300'} flex items-center justify-center text-[10px]">
+              ${s.rank}
+            </span>
+            <span class="font-semibold text-gray-200 truncate max-w-[100px]">${s.name}</span>
+          </div>
+          <span class="font-mono font-bold text-arcade-neonCyan">${s.score} Pts</span>
+        </div>
+      `).join('');
+    }
+
+
+    function renderLeaderboard() {
+      const container = document.getElementById('leaderboard-list');
+
+      // Aggregate global top scores across games
+      let allScores = [];
+      Object.keys(gameScoresStore).forEach(gId => {
+        const game = gamesList.find(g => g.id === gId);
+        gameScoresStore[gId].forEach(s => {
+          allScores.push({ ...s, gameTitle: game ? game.title : '아케이드 게임' });
+        });
+      });
+
+      allScores.sort((a, b) => b.score - a.score);
+
+      container.innerHTML = allScores.slice(0, 8).map((item, idx) => `
+        <div class="glass-panel p-3.5 rounded-xl border border-arcade-border flex items-center justify-between hover:border-arcade-neonPurple/50 transition-all">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-xl font-arcade text-xs font-bold flex items-center justify-center ${
+              idx === 0 ? 'bg-arcade-neonYellow text-black shadow-neon-yellow' :
+              idx === 1 ? 'bg-gray-300 text-black' :
+              idx === 2 ? 'bg-amber-700 text-white' : 'bg-arcade-card text-gray-400 border border-arcade-border'
+            }">
+              ${idx + 1}
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="text-sm font-bold text-white">${item.name}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-arcade-neonPurple/20 text-arcade-neonCyan border border-arcade-neonPurple/40">${item.gameTitle}</span>
+              </div>
+              <span class="text-[10px] text-gray-500">${item.date}</span>
+            </div>
+          </div>
+
+          <div class="text-right">
+            <span class="text-base font-bold font-mono text-arcade-neonYellow glow-yellow">${item.score.toLocaleString()}</span>
+            <span class="text-xs text-gray-400 block">PTS</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function switchLeaderboardScope(scope) {
+      document.getElementById('lb-scope-global').className = scope === 'global' ? 
+        "px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-arcade-neonPurple/40" : 
+        "px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white";
+      
+      document.getElementById('lb-scope-weekly').className = scope === 'weekly' ? 
+        "px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-arcade-neonPurple/40" : 
+        "px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white";
+
+      renderLeaderboard();
+      showToast(`${scope === 'global' ? '글로벌' : '주간'} 랭킹 목록으로 전환되었습니다.`, "info");
+    }
+
+    function likeGame(gameId, e) {
+      e.stopPropagation();
+      const game = gamesList.find(g => g.id === gameId);
+      if(game) {
+        game.likes += 1;
+        renderGamesGrid();
+        showToast(`'${game.title}' 게임에 좋아요를 눌렀습니다!`, "success");
+      }
+    }
+
+    function shareCurrentGame() {
+      if(!currentPlayingGame) return;
+      const text = `🎮 AI 게임 '${currentPlayingGame.title}'에서 내 최상위 점수에 도전하세요!`;
+      
+      // Use fallback execCommand for iframe clipboards
+      const tempInput = document.createElement('textarea');
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+
+      showToast("공유 링크 및 문구가 클립보드에 복사되었습니다!", "success");
+    }
+
+    function openProfileModal() {
+      showToast(`안녕하세요, ${currentUser.name}님! 보유 크레딧: ${currentUser.tokens} CR`, "info");
+    }
+
+    function scrollToFeatured() {
+      document.getElementById('featured-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function toggleModalFullscreen() {
+      const modal = document.getElementById('game-modal');
+      if(!document.fullscreenElement) {
+        modal.requestFullscreen().catch(err => console.log(err));
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+
+      const bgClasses = {
+        success: 'bg-arcade-card border-arcade-neonGreen text-arcade-neonGreen',
+        warning: 'bg-arcade-card border-arcade-neonYellow text-arcade-neonYellow',
+        info: 'bg-arcade-card border-arcade-neonCyan text-arcade-neonCyan'
+      };
+
+      toast.className = `pointer-events-auto px-4 py-3 rounded-xl border ${bgClasses[type]} shadow-2xl text-xs font-bold flex items-center space-x-2 transition-all transform translate-y-2 opacity-0 duration-300`;
+      
+      const icon = type === 'success' ? 'fa-circle-check' : type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info';
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
